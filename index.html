@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>源源</title>
+    <style>
+        .tip-window {
+            position: fixed;
+            width: 259px;
+            height: 60px;
+            padding: 15px 0;
+            border: none;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            font-family: "微软雅黑", sans-serif;
+            font-size: 16px;
+            color: #333;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        #exit-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-family: "微软雅黑", sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10000;
+        }
+    </style>
+</head>
+<body>
+    <button id="exit-btn">退出程序 (Ctrl+Alt+q)</button>
+
+    <script>
+        let exitFlag = false;
+        let allWindows = [];
+        const MAX_WINDOWS = 300;
+        const CREATE_INTERVAL = 100;
+        const TIPS = ['我想你啦', '今天开心嘛', '你超棒的', '好好爱自己', '早点休息', '天冷了,多穿衣服', '保持好心情'];
+        const BG_COLORS = ["#FCE4EC","#FFF8E1", "#E3F2FD", "#F3E5F5","#FFF9E6","#E8F5E9","#EDE7F6","#FFF3E0","#E1F5FE","#F1E8F0"];
+
+        function showWarmTip() {
+            if (exitFlag) return;
+
+            const window = document.createElement('div');
+            window.className = 'tip-window';
+            allWindows.push(window);
+
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            const winW = 259;
+            const winH = 60;
+            const x = Math.floor(Math.random() * (screenW - winW));
+            const y = Math.floor(Math.random() * (screenH - winH));
+
+            window.style.left = `${x}px`;
+            window.style.top = `${y}px`;
+            window.style.backgroundColor = BG_COLORS[Math.floor(Math.random() * BG_COLORS.length)];
+            window.innerHTML = `<div style="height: 100%; display: flex; align-items: center; justify-content: center;">${TIPS[Math.floor(Math.random() * TIPS.length)]}</div>`;
+
+            document.body.appendChild(window);
+
+            function checkExit() {
+                if (exitFlag) {
+                    window.remove();
+                } else {
+                    setTimeout(checkExit, 50);
+                }
+            }
+            checkExit();
+
+            setTimeout(() => {
+                window.style.opacity = '0';
+                window.style.transition = 'opacity 1s ease-in-out';
+                setTimeout(() => {
+                    window.remove();
+                    const index = allWindows.indexOf(window);
+                    if (index !== -1) allWindows.splice(index, 1);
+                }, 1000);
+            }, 3000 + Math.random() * 2000);
+        }
+
+        function createWindowsPeriodically() {
+            if (exitFlag || allWindows.length >= MAX_WINDOWS) return;
+            showWarmTip();
+            setTimeout(createWindowsPeriodically, CREATE_INTERVAL);
+        }
+
+        function forceExit() {
+            if (exitFlag) return;
+            exitFlag = true;
+
+            allWindows.forEach(win => {
+                win.style.opacity = '0';
+                win.style.transition = 'opacity 0.5s ease-in-out';
+                setTimeout(() => win.remove(), 500);
+            });
+            allWindows = [];
+        }
+
+        document.getElementById('exit-btn').addEventListener('click', forceExit);
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey && e.altKey && (e.key === 'q' || e.key === 'Q')) || (e.ctrlKey && (e.key === 'c' || e.key === 'C'))) {
+                forceExit();
+            }
+        });
+
+        createWindowsPeriodically();
+    </script>
+</body>
+</html>
